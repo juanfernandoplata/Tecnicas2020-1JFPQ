@@ -1,0 +1,10 @@
+all: programa
+
+programa: main funciones
+	gcc -o EjercicioClase funciones.o main.o
+
+funciones: funciones.c funciones.h
+	gcc -c funciones.c
+
+main: main.c funciones.h
+	gcc -c main.c
