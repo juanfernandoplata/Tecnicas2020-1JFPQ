@@ -1,0 +1,76 @@
+================================
+|  ALGORITMO BURBUJA MEJORADO  |
+================================
+
+==================================
+LISTA ORDENADA
+DIMENSION DE LA LISTA: 10
+==================================
+
+INICIO DE LA EJECUCION
+======================
+
+ANIO: 2020
+MES: 5
+DIA: 9
+HORA: 17
+MINUTO: 27
+SEGUNDO: 12
+
+
+FINALIZACION DE LA EJECUCION
+============================
+
+ANIO: 2020
+MES: 5
+DIA: 9
+HORA: 17
+MINUTO: 27
+SEGUNDO: 12
+
+TIEMPO DE EJECUCCION EN SEGUNDOS: 0.000000
+TIEMPO DE EJECUCCION EN MINUTOS: 0.000000
+
+NUMERO DE INTERCAMBIOS DE ELEMENTOS: 0
+NUMERO DE COMPARACIONES ENTRE ELEMENTOS: 9
+
+PORCENTAJE DEL ARREGLO ORDENADO: 100.000000%
+
+=================================================
+
+==================================
+LISTA DESORDENADA
+DIMENSION DE LA LISTA: 10
+==================================
+
+INICIO DE LA EJECUCION
+======================
+
+ANIO: 2020
+MES: 5
+DIA: 9
+HORA: 17
+MINUTO: 27
+SEGUNDO: 12
+
+
+FINALIZACION DE LA EJECUCION
+============================
+
+ANIO: 2020
+MES: 5
+DIA: 9
+HORA: 17
+MINUTO: 27
+SEGUNDO: 12
+
+TIEMPO DE EJECUCCION EN SEGUNDOS: 0.000000
+TIEMPO DE EJECUCCION EN MINUTOS: 0.000000
+
+NUMERO DE INTERCAMBIOS DE ELEMENTOS: 24
+NUMERO DE COMPARACIONES ENTRE ELEMENTOS: 81
+
+PORCENTAJE DEL ARREGLO ORDENADO: 100.000000%
+
+=================================================
+
