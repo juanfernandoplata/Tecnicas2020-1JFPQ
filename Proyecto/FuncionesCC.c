@@ -1,5 +1,37 @@
 #include "FuncionesCC.h"
 
+void imprimirLista( int lista[ ], int size ){
+   int i;
+   for( i = 0; i < size; i++ ){
+      printf( "%d ", lista[ i ] );
+   }
+   printf( "\n" );
+}
+
+int validarId( int * listaIdsModificados, int * dimensionLista, int id ){
+   int i = 0, validar = 0;
+   while( listaIdsModificados[ i ] != -1 && i < * dimensionLista && !validar ){
+      if( listaIdsModificados[ i ] == id ){
+         validar = 1;
+         break;
+      }
+      i++;
+   }
+   if( validar == 0 ){
+      i = -1;
+   }
+   return i;
+}
+
+int * generarListaIdsModificados( int * pisos, int * localesxPiso ){
+   int i;
+   int * listaIdsModificados = malloc( * pisos * * localesxPiso * sizeof( int ) );
+   for( i = 0; i <  * pisos * ( * localesxPiso ); i++ ){
+      listaIdsModificados[ i ] = -1;
+   }
+   return listaIdsModificados;
+}
+
 local_t ** reservarEspacioMemoria( int * localesxPiso, int * pisos ){
    int i;
    local_t ** centroComercial = malloc( * pisos * sizeof( local_t * ) );
@@ -149,13 +181,13 @@ void listarLocales( local_t ** centroComercial, int pisos, int localesxPiso ){
    }
 }
 
-void modificarInformacionLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
+void modificarInformacionLocal( local_t ** centroComercial, int pisos, int localesxPiso, int * listaIdsModificados, int * elementosListaIds ){
    enum ruta{
       NOMBRE = 1,
       UBICACION = 2,
       ID = 3,
    };
-   int a, b, i, j, id, opcion, pisoLocal, numeroLocal, repetido = 0, idEncontrado = 0;;
+   int a, b, i, j, id, idNuevo, opcion, pisoLocal, numeroLocal, repetido = 0, idEncontrado = 0;;
    char nombreLocalTemp[ 35 ];
    listarLocales( centroComercial, pisos, localesxPiso );
    do{
@@ -202,31 +234,39 @@ void modificarInformacionLocal( local_t ** centroComercial, int pisos, int local
                                      }
                                   }
                                   break;
-                  case ID: printf( "Tenga en cuenta que cambiar el ID puede generar ID's duplicados a futuro. No le recomendamos modificar el ID\n" );
-                           printf( "Esta seguro de que desea cambiar el ID?\n" );
-                           printf( "1. Si\n" );
-                           printf( "2. No\n" );
-                           scanf( "%d", &opcion );
-                           if( opcion == 2 ){
-                              break;
+                  case ID: printf( "Ingrese el nuevo ID: " );
+                           scanf( "%d", &idNuevo );
+                           if( validarId( listaIdsModificados, elementosListaIds, idNuevo ) != -1 ){
+                              printf( "El ID solicitdo ya fue seleccionado anteriormente. No se realizaran cambios\n" );
                            }
-                           printf( "Ingrese el nuevo ID: " );
-                           scanf( "%d", &id );
-                           for( a = 0; a < pisos; a++ ){
-                              for( b = 0; b < localesxPiso; b++ ){
-                                 if( centroComercial[ a ][ b ].idLocal == id ){
-                                    printf( "El ID solicitado ya existe. No se realizaran cambios\n" );
-                                    repetido = 1;
+                           else{
+                              for( a = 0; a < pisos; a++ ){
+                                 for( b = 0; b < localesxPiso; b++ ){
+                                    if( centroComercial[ a ][ b ].idLocal == idNuevo ){
+                                       printf( "El ID solicitado ya existe. No se realizaran cambios\n" );
+                                       repetido = 1;
+                                       break;
+                                    }
+                                  }
+                                  if( repetido ){
                                     break;
+                                  }
+                              }
+                              if( !repetido ){
+                                 centroComercial[ i ][ j ].idLocal = idNuevo;
+                                 printf( "El ID en el registro se ha modificado con exito\n" );
+                                 int indice = validarId( listaIdsModificados, elementosListaIds, id );
+                                 if( indice != -1 ){
+                                    for( a = indice; a < * elementosListaIds - 1; a++ ){
+                                       listaIdsModificados[ a ] = listaIdsModificados[ a + 1 ];
+                                    }
+                                    listaIdsModificados[ * elementosListaIds - 1 ] = idNuevo;
                                  }
+                                 else{
+                                    listaIdsModificados[ ( * elementosListaIds )++ ] = idNuevo;
+                                 }
+                                 imprimirLista( listaIdsModificados, * elementosListaIds );
                               }
-                              if( repetido ){
-                                 break;
-                              }
-                           }
-                           if( !repetido ){
-                              centroComercial[ i ][ j ].idLocal = id;
-                              printf( "El ID en el registro se ha modificado con exito\n" );
                            }
                            break;
                }

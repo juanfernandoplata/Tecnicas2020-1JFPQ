@@ -20,6 +20,7 @@ void menu( int * opcion ){
 int main( ){
    local_t ** centroComercial;
    int opcion, pisos, localesxPiso;
+   int * listaIdsModificados;
    FILE * archivoBinario = fopen( "./Data/Data.dat", "rb" );
    if( archivoBinario == NULL ){
       crearDirectorios( );
@@ -29,6 +30,8 @@ int main( ){
       centroComercial = cargarCC( archivoBinario, &localesxPiso, &pisos );
    }
    fclose( archivoBinario );
+   listaIdsModificados = generarListaIdsModificados( &pisos, &localesxPiso );
+   int elementosListaIds = 0;
    do{
       menu( &opcion );
       switch( opcion ){
@@ -38,7 +41,7 @@ int main( ){
                  break;
          case 3: listarLocalesPorPiso( centroComercial, localesxPiso );
                  break;
-         case 4: modificarInformacionLocal( centroComercial, pisos, localesxPiso );
+         case 4: modificarInformacionLocal( centroComercial, pisos, localesxPiso, listaIdsModificados, &elementosListaIds );
                  break;
          case 5: listarLocales( centroComercial, pisos, localesxPiso );
                  break;
