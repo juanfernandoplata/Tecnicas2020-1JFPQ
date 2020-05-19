@@ -8,58 +8,48 @@ void imprimirLista( int lista[ ], int size ){
    printf( "\n" );
 }
 
-int validarId( int * listaIdsModificados, int * dimensionLista, int id ){
-   int i = 0, validar = 0;
-   while( listaIdsModificados[ i ] != -1 && i < * dimensionLista && !validar ){
-      if( listaIdsModificados[ i ] == id ){
-         validar = 1;
-         break;
-      }
-      i++;
-   }
-   if( validar == 0 ){
-      i = -1;
-   }
-   return i;
-}
-
-int * generarListaIdsModificados( int * pisos, int * localesxPiso ){
+void generarListaIdsModificados( int ** listaIdsModificados, int pisos, int localesxPiso ){
    int i;
-   int * listaIdsModificados = malloc( * pisos * * localesxPiso * sizeof( int ) );
-   for( i = 0; i <  * pisos * ( * localesxPiso ); i++ ){
-      listaIdsModificados[ i ] = -1;
+   * listaIdsModificados = malloc( pisos * localesxPiso * sizeof( int ) );
+   for( i = 0; i <  pisos * localesxPiso; i++ ){
+      ( * listaIdsModificados )[ i ] = -1;
    }
-   return listaIdsModificados;
+   imprimirLista( * listaIdsModificados, pisos * localesxPiso );
 }
 
-local_t ** reservarEspacioMemoria( int * localesxPiso, int * pisos ){
+void reservarEspacioMemoria( local_t *** centroComercial, int localesxPiso, int pisos, int ** listaIdsModificados ){
    int i;
-   local_t ** centroComercial = malloc( * pisos * sizeof( local_t * ) );
-   for( i = 0; i < * pisos; i++ ){
-      centroComercial[ i ] = malloc( * localesxPiso * sizeof( local_t ) );
+   * listaIdsModificados = malloc( pisos * localesxPiso * sizeof( int ) );
+   * centroComercial = malloc( pisos * sizeof( local_t * ) );
+   for( i = 0; i < pisos; i++ ){
+      ( * centroComercial )[ i ] = malloc( localesxPiso * sizeof( local_t ) );
    }
-   return centroComercial;
+   printf( "%d\n", localesxPiso * pisos );
 }
 
-void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * localesxPiso, int * pisos ){
+void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * localesxPiso, int * pisos, int * listaIdsModificados, int * elementosListaIds ){
    int i;
    fwrite( localesxPiso, sizeof( int ), 1, archivoBinario );
    fwrite( pisos, sizeof( int ), 1, archivoBinario );
+   fwrite( elementosListaIds, sizeof( int ), 1, archivoBinario );
+   fwrite( listaIdsModificados, sizeof( int ), * elementosListaIds, archivoBinario );
    for( i = 0; i < * pisos; i++ ){
       fwrite( centroComercial[ i ], sizeof( local_t ), * localesxPiso, archivoBinario );
    }
+   printf( "%d\n", * elementosListaIds );
 }
 
-local_t ** cargarCC( FILE * archivoBinario, int * localesxPiso, int * pisos ){
-   local_t ** centroComercial;
+void cargarCC( FILE * archivoBinario, local_t *** centroComercial, int * localesxPiso, int * pisos, int ** listaIdsModificados, int * elementosListaIds ){
    int i;
    fread( localesxPiso, sizeof( int ), 1, archivoBinario );
    fread( pisos, sizeof( int ), 1, archivoBinario );
-   centroComercial = reservarEspacioMemoria( localesxPiso, pisos );
+   reservarEspacioMemoria( centroComercial, * localesxPiso, * pisos, listaIdsModificados );
+   fread( elementosListaIds, sizeof( int ), 1, archivoBinario );
+   printf( "%d\n", * elementosListaIds );
+   fread( * listaIdsModificados, sizeof( int ), * elementosListaIds, archivoBinario );
    for( i = 0; i < * pisos; i++ ){
-      fread( centroComercial[ i ], sizeof( local_t ), * localesxPiso, archivoBinario );
+      fread( ( * centroComercial )[ i ], sizeof( local_t ), * localesxPiso, archivoBinario );
    }
-   return centroComercial;
 }
 
 void crearDirectorios( ){
@@ -105,8 +95,49 @@ int multiplicadorDecimal( int localesxPiso ){
    return 10 * multiplicadorDecimal( localesxPiso / 10);
 }
 
-void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
-   int pisoLocal, numeroLocal, validar = 1;
+int validarId( int * listaIdsModificados, int * dimensionLista, int id ){
+   int i = 0, validar = 0;
+   while( listaIdsModificados[ i ] != -1 && i < * dimensionLista && !validar ){
+      if( listaIdsModificados[ i ] == id ){
+         validar = 1;
+         break;
+      }
+      i++;
+   }
+   if( validar == 0 ){
+      i = -1;
+   }
+   return i;
+}
+
+int * imprimirInfoLocal( local_t ** centroComercial, int pisos, int localesxPiso, int id ){
+   int i, j, validar = 0;
+   int * indices = malloc( 2 * sizeof( int ) );
+   for( i = 0; i < pisos; i++ ){
+      for( j = 0; j < localesxPiso; j++ ){
+         if( centroComercial[ i ][ j ].idLocal == id ){
+            printf( "\n" );
+            printf( "Nombre: %s", centroComercial[ i ][ j ].nombreLocal );
+            printf( "ID: %d\n", centroComercial[ i ][ j ].idLocal );
+            printf( "Piso: %d\n", centroComercial[ i ][ j ].pisoLocal );
+            printf( "Numero local: %d\n", centroComercial[ i ][ j ].numLocalxPiso );
+            printf( "===========================\n" );
+            validar = 1;
+            break;
+         }
+      }
+      if( validar ){
+         break;
+      }
+   }
+   indices[ 0 ] = i;
+   indices[ 1 ] = j;
+   return indices;
+}
+
+void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int * listaIdsModificados, int * elementosListaIds ){
+   int a, indice, posibleId, nuevoId, pisoLocal, numeroLocal, validar = 1;
+   int * indices;
    do{
       printf( "Ingrese el piso donde desea ubicar el local: " );
       scanf( " %d", &pisoLocal );
@@ -114,15 +145,33 @@ void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
       scanf( " %d", &numeroLocal );
       if( pisoLocal >= 1 && pisoLocal <= pisos && numeroLocal >= 1 && numeroLocal <= localesxPiso ){
          if( centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].idLocal == -1 ){
+            posibleId = pisoLocal * multiplicadorDecimal( localesxPiso ) + numeroLocal;
+            indice = validarId( listaIdsModificados, elementosListaIds, posibleId );
+            if( indice == -1 ){
+               centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].idLocal = posibleId;
+            }
+            else{
+               printf( "Debido a un conflicto de ID's la informacion del local no podra ser almacenada hasta que se modifique el ID del siguiente local:\n" );
+               indices = imprimirInfoLocal( centroComercial, pisos, localesxPiso, posibleId );
+               printf( "Ingrese el nuevo ID del local: " );
+               scanf( "%d", &nuevoId );
+               centroComercial[ indices[ 0 ] ][ indices[ 1 ] ].idLocal = nuevoId;
+               for( a = indice; a < * elementosListaIds - 1; a++ ){
+                  listaIdsModificados[ a ] = listaIdsModificados[ a + 1 ];
+               }
+               (* elementosListaIds )--;
+               centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].idLocal = posibleId;
+               printf( "El ID del local se ha modificado con exito. Ya puede agregar el local\n" );
+            }
             printf( "Ingrese el nombre del local: " );
             fflush( stdin );
             fgets( centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].nombreLocal, 35, stdin );
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].pisoLocal = pisoLocal;
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].numLocalxPiso = numeroLocal;
-            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].idLocal = pisoLocal * multiplicadorDecimal( localesxPiso ) + numeroLocal;
             printf( "Ingrese el numero de metros cuadrados del local: " );
             scanf( "%d", &centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].metrosCuadradosLocal );
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].estadoPago = AL_DIA;
+            posibleId = pisoLocal * multiplicadorDecimal( localesxPiso ) + numeroLocal;
             break;
          }      
          else{
@@ -133,6 +182,7 @@ void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
          printf( "El local indicado no existe. Por favor ingrese una ubicacion diferente para el local\n" );
       }
    } while( 1 );
+   imprimirLista( listaIdsModificados, * elementosListaIds );
 }
 
 void numeroLocalesEnUso( local_t ** centroComercial, int pisos, int localesxPiso ){
@@ -235,7 +285,7 @@ void modificarInformacionLocal( local_t ** centroComercial, int pisos, int local
                                   }
                                   break;
                   case ID: printf( "Ingrese el nuevo ID: " );
-                           scanf( "%d", &idNuevo );
+                           validarRangoValor( 1, INT_MAX, &idNuevo );
                            if( validarId( listaIdsModificados, elementosListaIds, idNuevo ) != -1 ){
                               printf( "El ID solicitdo ya fue seleccionado anteriormente. No se realizaran cambios\n" );
                            }

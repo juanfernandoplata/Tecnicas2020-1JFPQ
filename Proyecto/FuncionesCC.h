@@ -61,14 +61,14 @@ struct Local{
    int metrosCuadradosLocal;   
 };
 
-int * generarListaIdsModificados( int * pisos, int * localesxPiso );
-void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * localesxPiso, int * pisos );
-local_t ** cargarCC( FILE * archivoBinario, int * localesxPiso, int * pisos );
+void generarListaIdsModificados( int ** listaIdsModificados, int pisos, int localesxPiso );
+void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * localesxPiso, int * pisos, int * listaIdsModificados, int * elementosListaIds );
+void cargarCC( FILE * archivoBinario, local_t *** centroComercial, int * localesxPiso, int * pisos, int ** listaIdsModificados, int * elementosListaIds );
 void crearDirectorios( );
 void validarRangoValor( int minimo, int maximo, int * direccionvariable );
 local_t ** crearCC( int * pisos, int * localesxPiso );
 int multiplicadorDecimal( int localesxPiso );
-void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso );
+void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int * listaIdsModificados, int * elementosListaIds );
 void numeroLocalesEnUso( local_t ** centroComercial, int pisos, int localesxPiso );
 void listarLocalesPorPiso( local_t ** centroComercial, int localesxPiso );
 void listarLocales( local_t ** centroComercial, int pisos, int localesxPiso );

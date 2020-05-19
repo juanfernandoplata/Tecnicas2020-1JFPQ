@@ -19,23 +19,23 @@ void menu( int * opcion ){
 
 int main( ){
    local_t ** centroComercial;
-   int opcion, pisos, localesxPiso;
+   int opcion, pisos, localesxPiso, elementosListaIds;
    int * listaIdsModificados;
    FILE * archivoBinario = fopen( "./Data/Data.dat", "rb" );
    if( archivoBinario == NULL ){
       crearDirectorios( );
       centroComercial = crearCC( &pisos, &localesxPiso );
+      generarListaIdsModificados( &listaIdsModificados, pisos, localesxPiso );
+      elementosListaIds = 0;
    }
    else{
-      centroComercial = cargarCC( archivoBinario, &localesxPiso, &pisos );
+      cargarCC( archivoBinario, &centroComercial, &localesxPiso, &pisos, &listaIdsModificados, &elementosListaIds );
    }
    fclose( archivoBinario );
-   listaIdsModificados = generarListaIdsModificados( &pisos, &localesxPiso );
-   int elementosListaIds = 0;
    do{
       menu( &opcion );
       switch( opcion ){
-         case 1: agregarLocal( centroComercial, pisos, localesxPiso );
+         case 1: agregarLocal( centroComercial, pisos, localesxPiso, listaIdsModificados, &elementosListaIds );
                  break;
          case 2: numeroLocalesEnUso( centroComercial, pisos, localesxPiso );
                  break;
@@ -56,7 +56,7 @@ int main( ){
       }
    } while( opcion != 10 );
    archivoBinario = fopen( "./Data/Data.dat", "wb" );
-   guardarCC( archivoBinario, centroComercial, &localesxPiso, &pisos );
+   guardarCC( archivoBinario, centroComercial, &localesxPiso, &pisos, listaIdsModificados, &elementosListaIds );
    fclose( archivoBinario );
    free( centroComercial ); // Completar
    return 0;
