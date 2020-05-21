@@ -1,10 +1,5 @@
-Nombre: GGG
-ID: 101
-Costo de la renta: 90000000
+Nombre: Adidas
+ID: 11
+Costo de la renta: 2025000.450000
 Estado de pago: Al dia
-===========================
-Nombre: HHH
-ID: 102
-Costo de la renta: 200000000
-Estado de pago: En mora
 ===========================

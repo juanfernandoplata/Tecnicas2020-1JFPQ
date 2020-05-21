@@ -5,12 +5,14 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <string.h>
 
 typedef struct Local local_t;
 typedef struct type_inventario type_inventario;
 typedef struct type_nomina type_nomina;
 typedef struct type_indicadoresFinanzas type_indicadoresFinanzas;
+typedef struct type_renta type_renta;
 typedef enum categoria type_categoria;
 typedef enum estadoPago type_estadoPago;
 
@@ -36,16 +38,24 @@ struct type_indicadoresFinanzas{
 
 struct type_nomina{
    int numeroEmpleados;
-   char * listaNombres[ 100 ];
-   char * listaCargos[ 100 ];
+   char listaNombres[ 100 ][ 31 ];
+   char listaCargos[ 100 ][ 31 ];
    double listaSalarios[ 100 ];
 };
 
 struct type_inventario{
-   int items;
-   char * listaProductos[ 1000 ];
+   int numeroProductos;
+   char listaProductos[ 1000 ][ 31 ];
+   int listaCantidad[ 1000 ];
+   double listaCostos[ 1000 ];
    double listaPrecios[ 1000 ];
    double indicadorRentabilidad;
+};
+
+struct type_renta{
+   type_estadoPago estadoPago;
+   int mesesMora;
+   int rentasPagas;
 };
 
 struct Local{
@@ -54,16 +64,20 @@ struct Local{
    type_categoria categoria;
    type_indicadoresFinanzas indicadoresFinanzas;
    type_inventario inventario;
-   type_estadoPago estadoPago;
+   type_renta renta;
    int idLocal;
    int pisoLocal;
    int numLocalxPiso;
-   int metrosCuadradosLocal;   
+   int metrosCuadradosLocal;
+   struct tm fechaIngreso;
 };
 
+void menuPrincipal( );
+void validarRangoValor( int minimo, int maximo, int * direccionVariable );
+void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso, struct tm * tiempoActualizado );
 void generarListaIdsModificados( int ** listaIdsModificados, int pisos, int localesxPiso );
-void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * localesxPiso, int * pisos, int * listaIdsModificados, int * elementosListaIds );
-void cargarCC( FILE * archivoBinario, local_t *** centroComercial, int * localesxPiso, int * pisos, int ** listaIdsModificados, int * elementosListaIds );
+void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * pisos, int * localesxPiso, int * listaIdsModificados, int * elementosListaIds );
+void cargarCC( FILE * archivoBinario, local_t *** centroComercial, int * pisos, int * localesxPiso, int ** listaIdsModificados, int * elementosListaIds );
 void crearDirectorios( );
 void validarRangoValor( int minimo, int maximo, int * direccionvariable );
 local_t ** crearCC( int * pisos, int * localesxPiso );

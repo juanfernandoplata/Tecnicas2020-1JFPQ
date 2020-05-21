@@ -2,26 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void menu( int * opcion ){
-   printf( "MENU\n" );
-   printf( "1. Ingresar un nuevo local al sistema\n" );
-   printf( "2. Ver el numero de locales en uso\n" );
-   printf( "3. Ver locales ubicados en un piso\n" );
-   printf( "4. Modificar la informacion de un local\n" );
-   printf( "5. Listar todos los locales\n" );
-   printf( "6. Eliminar un local del sistema\n" );
-   printf( "7. Reiniciar estados de pago\n" );
-   printf( "8. Registrar pago de la renta de un local\n" );
-   printf( "9. Generar registro de pagos\n" );
-   printf( "10. Salir\n" );
-   scanf( "%d", opcion );
-}
-
 int main( ){
+   int i;
    local_t ** centroComercial;
    int opcion, pisos, localesxPiso, elementosListaIds;
    int * listaIdsModificados;
    FILE * archivoBinario = fopen( "./Data/Data.dat", "rb" );
+   time_t tiempoActual;
+   tiempoActual = time( NULL );
    if( archivoBinario == NULL ){
       crearDirectorios( );
       centroComercial = crearCC( &pisos, &localesxPiso );
@@ -29,11 +17,13 @@ int main( ){
       elementosListaIds = 0;
    }
    else{
-      cargarCC( archivoBinario, &centroComercial, &localesxPiso, &pisos, &listaIdsModificados, &elementosListaIds );
+      cargarCC( archivoBinario, &centroComercial, &pisos, &localesxPiso, &listaIdsModificados, &elementosListaIds );
    }
    fclose( archivoBinario );
+   evaluarRentas( centroComercial, pisos, localesxPiso, localtime( &tiempoActual ) );
    do{
-      menu( &opcion );
+      menuPrincipal( );
+      validarRangoValor( 1, 10, &opcion );
       switch( opcion ){
          case 1: agregarLocal( centroComercial, pisos, localesxPiso, listaIdsModificados, &elementosListaIds );
                  break;
@@ -56,8 +46,11 @@ int main( ){
       }
    } while( opcion != 10 );
    archivoBinario = fopen( "./Data/Data.dat", "wb" );
-   guardarCC( archivoBinario, centroComercial, &localesxPiso, &pisos, listaIdsModificados, &elementosListaIds );
+   guardarCC( archivoBinario, centroComercial, &pisos, &localesxPiso, listaIdsModificados, &elementosListaIds );
    fclose( archivoBinario );
-   free( centroComercial ); // Completar
+   for( i = 0; i < pisos; i++ ){
+      free( centroComercial[ i ] );
+   }
+   free( centroComercial );
    return 0;
 }
