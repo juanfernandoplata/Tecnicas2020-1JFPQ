@@ -7,12 +7,14 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <string.h>
+#include <pthread.h>
 
 typedef struct Local local_t;
 typedef struct type_inventario type_inventario;
 typedef struct type_nomina type_nomina;
 typedef struct type_indicadoresFinanzas type_indicadoresFinanzas;
 typedef struct type_renta type_renta;
+typedef struct type_threadData type_threadData;
 typedef enum categoria type_categoria;
 typedef enum estadoPago type_estadoPago;
 
@@ -31,9 +33,13 @@ enum estadoPago{
 };
 
 struct type_indicadoresFinanzas{
-   double ventasSemana;
-   double ventasMes;
-   double ventasAnio;
+   double historicoGanancias;
+   double gananciasSemana;
+   time_t ultModSem;
+   double gananciasMes;
+   time_t ultModMes;
+   double gananciasAnio;
+   time_t ultModAnio;
 };
 
 struct type_nomina{
@@ -56,6 +62,14 @@ struct type_renta{
    type_estadoPago estadoPago;
    int mesesMora;
    int rentasPagas;
+   time_t ultMod;
+};
+
+struct type_threadData{
+   local_t ** centroComercial;
+   int pisos;
+   int localesxPiso;
+   int * killThread;
 };
 
 struct Local{
@@ -72,9 +86,11 @@ struct Local{
    struct tm fechaIngreso;
 };
 
+void * timer( void * arg );
 void menuPrincipal( );
 void validarRangoValor( int minimo, int maximo, int * direccionVariable );
-void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso, struct tm * tiempoActualizado );
+void consultarInfoLocal( local_t ** centroComercial, int pisos, int localesxPiso );
+void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso );
 void generarListaIdsModificados( int ** listaIdsModificados, int pisos, int localesxPiso );
 void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * pisos, int * localesxPiso, int * listaIdsModificados, int * elementosListaIds );
 void cargarCC( FILE * archivoBinario, local_t *** centroComercial, int * pisos, int * localesxPiso, int ** listaIdsModificados, int * elementosListaIds );
@@ -88,7 +104,6 @@ void listarLocalesPorPiso( local_t ** centroComercial, int localesxPiso );
 void listarLocales( local_t ** centroComercial, int pisos, int localesxPiso );
 void modificarInformacionLocal( local_t ** centroComercial, int pisos, int localesxPiso, int * listaIdsModificados, int * elementosListaIds );
 void eliminarLocal( local_t ** centroComercial, int pisos, int localesxPiso );
-void reiniciarEstadosDePago( local_t ** centroComercial, int pisos, int localesxPiso );
 void registrarPagoRentaLocal( local_t ** centroComercial, int pisos, int localesxPiso );
 void generarRegistroDePagos( local_t ** centroComercial, int pisos, int localesxPiso );
 

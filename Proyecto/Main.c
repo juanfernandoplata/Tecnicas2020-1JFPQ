@@ -1,15 +1,17 @@
 #include "FuncionesCC.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 int main( ){
-   int i;
+   int i, killThread = 0;
    local_t ** centroComercial;
    int opcion, pisos, localesxPiso, elementosListaIds;
    int * listaIdsModificados;
+   pthread_t tid;
+   pthread_attr_t attr;
+   pthread_attr_init( &attr );
    FILE * archivoBinario = fopen( "./Data/Data.dat", "rb" );
-   time_t tiempoActual;
-   tiempoActual = time( NULL );
    if( archivoBinario == NULL ){
       crearDirectorios( );
       centroComercial = crearCC( &pisos, &localesxPiso );
@@ -20,34 +22,42 @@ int main( ){
       cargarCC( archivoBinario, &centroComercial, &pisos, &localesxPiso, &listaIdsModificados, &elementosListaIds );
    }
    fclose( archivoBinario );
-   evaluarRentas( centroComercial, pisos, localesxPiso, localtime( &tiempoActual ) );
+   evaluarRentas( centroComercial, pisos, localesxPiso );
+   type_threadData threadData = ( type_threadData ){ centroComercial, pisos, localesxPiso, &killThread };
+printf( "Pisos: %d\n", pisos );
+printf( "Locales por piso: %d\n", localesxPiso );
+   pthread_create( &tid, &attr, timer, &threadData );
    do{
       menuPrincipal( );
-      validarRangoValor( 1, 10, &opcion );
+      validarRangoValor( 1, 11, &opcion );
       switch( opcion ){
          case 1: agregarLocal( centroComercial, pisos, localesxPiso, listaIdsModificados, &elementosListaIds );
                  break;
-         case 2: numeroLocalesEnUso( centroComercial, pisos, localesxPiso );
+         case 2: registrarVentaLocal( centroComercial, pisos, localesxPiso );
                  break;
-         case 3: listarLocalesPorPiso( centroComercial, localesxPiso );
+         case 3: numeroLocalesEnUso( centroComercial, pisos, localesxPiso );
                  break;
-         case 4: modificarInformacionLocal( centroComercial, pisos, localesxPiso, listaIdsModificados, &elementosListaIds );
+         case 4: listarLocalesPorPiso( centroComercial, localesxPiso );
                  break;
-         case 5: listarLocales( centroComercial, pisos, localesxPiso );
+         case 5: modificarInformacionLocal( centroComercial, pisos, localesxPiso, listaIdsModificados, &elementosListaIds );
                  break;
-         case 6: eliminarLocal( centroComercial, pisos, localesxPiso );
+         case 6: listarLocales( centroComercial, pisos, localesxPiso );
                  break;
-         case 7: reiniciarEstadosDePago( centroComercial, pisos, localesxPiso );
+         case 7: consultarInfoLocal( centroComercial, pisos, localesxPiso );
                  break;
-         case 8: registrarPagoRentaLocal( centroComercial, pisos, localesxPiso );
+         case 8: eliminarLocal( centroComercial, pisos, localesxPiso );
                  break;
-         case 9: generarRegistroDePagos( centroComercial, pisos, localesxPiso );
+         case 9: registrarPagoRentaLocal( centroComercial, pisos, localesxPiso );
+                 break;
+         case 10: generarRegistroDePagos( centroComercial, pisos, localesxPiso );
                  break;
       }
-   } while( opcion != 10 );
+   } while( opcion != 11 );
    archivoBinario = fopen( "./Data/Data.dat", "wb" );
    guardarCC( archivoBinario, centroComercial, &pisos, &localesxPiso, listaIdsModificados, &elementosListaIds );
    fclose( archivoBinario );
+   killThread = 1;
+   pthread_join( tid, NULL );
    for( i = 0; i < pisos; i++ ){
       free( centroComercial[ i ] );
    }

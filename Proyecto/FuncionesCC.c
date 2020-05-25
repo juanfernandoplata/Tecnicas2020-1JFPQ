@@ -1,24 +1,67 @@
 #include "FuncionesCC.h"
 
-void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso, struct tm * tiempoActualizado ){
-   int i, j, difAnios, difMeses, disDias, difFinal;
+void * timer( void * arg ){
+   type_threadData * threadData;
+   threadData = ( type_threadData * )arg;
+   local_t ** centroComercial = ( threadData->centroComercial );
+   time_t timeDifIndSem, timeDifIndMes, timeDifIndAnio, timeDifRent;
+   int i, j;
+   printf( "VALUE: %d\n", !( * threadData->killThread ) );
+   while( !( * threadData->killThread ) ){
+      for( i = 0; i < threadData->pisos; i++ ){
+         for( j = 0; j < threadData->localesxPiso; j++ ){
+            timeDifIndSem = ( time( NULL ) - centroComercial[ i ][ j ].indicadoresFinanzas.ultModSem ) / 604800;
+            timeDifIndMes = ( time( NULL ) - centroComercial[ i ][ j ].indicadoresFinanzas.ultModMes ) / 2626560;
+            timeDifIndAnio = ( time( NULL ) - centroComercial[ i ][ j ].indicadoresFinanzas.ultModAnio ) / 31536000;
+            timeDifRent = ( time( NULL ) - centroComercial[ i ][ j ].renta.ultMod ) / 43776;
+            if( timeDifRent > 0 ){
+               centroComercial[ i ][ j ].renta.mesesMora++;
+               centroComercial[ i ][ j ].renta.estadoPago = 1;
+               centroComercial[ i ][ j ].renta.ultMod = time( NULL );
+            }
+            if( timeDifIndSem > 0 ){
+               centroComercial[ i ][ j ].indicadoresFinanzas.gananciasSemana = 0;
+               centroComercial[ i ][ j ].indicadoresFinanzas.ultModSem = time( NULL );
+            }
+            if( timeDifIndMes > 0 ){
+               centroComercial[ i ][ j ].indicadoresFinanzas.gananciasMes = 0;
+               centroComercial[ i ][ j ].indicadoresFinanzas.ultModMes = time( NULL );
+            }
+            if( timeDifIndAnio > 0 ){
+               centroComercial[ i ][ j ].indicadoresFinanzas.gananciasAnio = 0;
+               centroComercial[ i ][ j ].indicadoresFinanzas.ultModAnio = time( NULL );
+            }
+         }
+      }
+   }
+   pthread_exit( 0 );
+}
+
+void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso ){
+   int i, j;
+   time_t timeDifIndSem, timeDifIndMes, timeDifIndAnio, timeDifRent;
    for( i = 0; i < pisos; i++ ){
       for( j = 0; j < localesxPiso; j++ ){
-         difAnios = tiempoActualizado->tm_year - centroComercial[ i ][ j ].fechaIngreso.tm_year;
-         difFinal = difAnios * 12;
-         if( tiempoActualizado->tm_mon >= centroComercial[ i ][ j ].fechaIngreso.tm_mon ){
-            difMeses = tiempoActualizado->tm_mon - centroComercial[ i ][ j ].fechaIngreso.tm_mon;
-            difFinal += difMeses;
-         }
-         else{
-            difFinal += tiempoActualizado->tm_mon;
-         }
-         if( tiempoActualizado->tm_mday < centroComercial[ i ][ j ].fechaIngreso.tm_mday ){
-            difFinal--;
-         }
-         centroComercial[ i ][ j ].renta.mesesMora += difFinal;
-         if( difFinal > 0 ){
+         timeDifIndSem = ( time( NULL ) - centroComercial[ i ][ j ].indicadoresFinanzas.ultModSem ) / 604800;
+         timeDifIndMes = ( time( NULL ) - centroComercial[ i ][ j ].indicadoresFinanzas.ultModMes ) / 2626560;
+         timeDifIndAnio = ( time( NULL ) - centroComercial[ i ][ j ].indicadoresFinanzas.ultModAnio ) / 31536000;
+         timeDifRent = ( time( NULL ) - centroComercial[ i ][ j ].renta.ultMod) / 2626560;
+         if( timeDifRent > 0 ){
+            centroComercial[ i ][ j ].renta.mesesMora += timeDifRent;
             centroComercial[ i ][ j ].renta.estadoPago = 1;
+            centroComercial[ i ][ j ].renta.ultMod = time( NULL );
+         }
+         if( timeDifIndSem > 0 ){
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasSemana = 0;
+            centroComercial[ i ][ j ].indicadoresFinanzas.ultModSem = time( NULL );
+         }
+         if( timeDifIndMes > 0 ){
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasMes = 0;
+            centroComercial[ i ][ j ].indicadoresFinanzas.ultModMes = time( NULL );
+         }
+         if( timeDifIndAnio > 0 ){
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasAnio = 0;
+            centroComercial[ i ][ j ].indicadoresFinanzas.ultModAnio = time( NULL );
          }
       }
    }
@@ -27,15 +70,16 @@ void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso, str
 void menuPrincipal( ){
    printf( "MENU PRINCIPAL\n" );
    printf( "1. Ingresar un nuevo local al sistema\n" );
-   printf( "2. Ver el numero de locales en uso\n" );
-   printf( "3. Ver locales ubicados en un piso\n" );
-   printf( "4. Modificar la informacion de un local\n" );
-   printf( "5. Listar todos los locales\n" );
-   printf( "6. Eliminar un local del sistema\n" );
-   printf( "7. Reiniciar estados de pago\n" );
-   printf( "8. Registrar pago de la renta de un local\n" );
-   printf( "9. Generar registro de pagos\n" );
-   printf( "10. Salir\n" );
+   printf( "2. Registrar venta de un local\n" );
+   printf( "3. Ver el numero de locales en uso\n" );
+   printf( "4. Ver locales ubicados en un piso\n" );
+   printf( "5. Modificar la informacion de un local\n" );
+   printf( "6. Listar todos los locales\n" );
+   printf( "7. Consultar informacion especifica de un local\n" );
+   printf( "8. Eliminar un local del sistema\n" );
+   printf( "9. Registrar pago de la renta de un local\n" );
+   printf( "10. Generar registro de pagos\n" );
+   printf( "11. Salir\n" );
 }
 
 void imprimirLista( int lista[ ], int size ){
@@ -258,6 +302,13 @@ void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int 
             menuCategoria( );
             validarRangoValor( 1, 6, &opcion );
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].categoria = opcion - 1;
+            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].indicadoresFinanzas.historicoGanancias = 0;
+            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].indicadoresFinanzas.gananciasSemana = 0;
+            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].indicadoresFinanzas.ultModSem = time( NULL );
+            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].indicadoresFinanzas.gananciasMes = 0;
+            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].indicadoresFinanzas.ultModMes = time( NULL );
+            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].indicadoresFinanzas.gananciasAnio = 0;
+            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].indicadoresFinanzas.ultModAnio = time( NULL );
             printf( "Ingrese el numero de productos en el inventario del local: " );
             scanf( "%d", &numProductos );
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].inventario.numeroProductos = numProductos;
@@ -283,6 +334,7 @@ void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int 
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].renta.estadoPago = 0;
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].renta.mesesMora = 0;
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].renta.rentasPagas = 0;
+            centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].renta.ultMod = time( NULL );
             tiempo = time( NULL );
             centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].fechaIngreso = * localtime( &tiempo );
             if( centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].fechaIngreso.tm_mon == 1 && centroComercial[ pisoLocal - 1 ][ numeroLocal - 1 ].fechaIngreso.tm_mday == 29 ){
@@ -430,7 +482,7 @@ modificarNomina( local_t * local ){
               }
               local->nomina.numeroEmpleados--;
               break;
-      case 3: listarNomina( &local->nomina );
+      case 3: listarNombresNomina( &local->nomina );
               printf( "Seleccione el empleado que desea modificar\n" );
               validarRangoValor( 1, local->nomina.numeroEmpleados, &numeroEmpleado );
               menuModEmp( );
@@ -499,7 +551,7 @@ modificarInventario( local_t * local ){
               local->inventario.numeroProductos++;
               recalcularIndicador( &local->inventario );
               break;
-      case 2: listarInventario( &local->inventario );
+      case 2: listarNombresInventario( &local->inventario );
               printf( "Seleccione el producto que desea eliminar\n" );
               validarRangoValor( 1, local->inventario.numeroProductos, &numeroProducto );
               for( a = numeroProducto - 1; a < local->inventario.numeroProductos - 1; a++ ){
@@ -511,7 +563,7 @@ modificarInventario( local_t * local ){
               local->inventario.numeroProductos--;
               recalcularIndicador( &local->inventario );
               break;
-      case 3: listarInventario( &local->inventario );
+      case 3: listarNombresInventario( &local->inventario );
               listarNombresInventario( &local->inventario );
               printf( "Seleccione el producto que desea modificar\n" );
               validarRangoValor( 1, local->inventario.numeroProductos, &numeroProducto );
@@ -644,6 +696,66 @@ void modificarInformacionLocal( local_t ** centroComercial, int pisos, int local
    } while( !idEncontrado );
 }
 
+menuInfoLocal( ){
+   printf( "Seleccione la informacion que desea consultar:\n" );
+   printf( "1. Consultar nomina\n" );
+   printf( "2. Consultar inventario\n" );
+}
+
+void consultarInfoLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
+   int opcion, i, j, id, idEncontrado = 0;
+   listarLocales( centroComercial, pisos, localesxPiso );
+   printf( "Ingrese el ID del local que desea consultar: " );
+   scanf( "%d", &id );
+   for( i = 0; i < pisos; i++ ){
+      for( j = 0; j < localesxPiso; j++ ){
+         if( centroComercial[ i ][ j ].idLocal == id ){
+            menuInfoLocal( );
+            validarRangoValor( 1, 2, &opcion );
+            switch( opcion ){
+              case 1: listarNomina( &centroComercial[ i ][ j ].nomina );
+                      break;
+              case 2: listarInventario( &centroComercial[ i ][ j ].inventario );
+                      break;
+            }
+            idEncontrado = 1;
+            break;
+         }
+      }
+      if( idEncontrado ){
+         break;
+      }
+   }
+}
+
+void registrarVentaLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
+   int unidades, opcion, numeroProducto, i, j, id, idEncontrado = 0;
+   listarLocales( centroComercial, pisos, localesxPiso );
+   printf( "Ingrese el ID del local que desea consultar: " );
+   scanf( "%d", &id );
+   for( i = 0; i < pisos; i++ ){
+      for( j = 0; j < localesxPiso; j++ ){
+         if( centroComercial[ i ][ j ].idLocal == id ){
+            listarNombresInventario( &centroComercial[ i ][ j ].inventario );
+            printf( "Ingrese el producto vendido: " );
+            scanf( "%d", &numeroProducto );
+            printf( "Ingrese el numero de unidades vendidas segun la disponibilidad: " );
+            validarRangoValor( 1, centroComercial[ i ][ j ].inventario.listaCantidad[ numeroProducto - 1 ], &unidades );
+            centroComercial[ i ][ j ].inventario.listaCantidad[ numeroProducto - 1 ] -= unidades;
+            centroComercial[ i ][ j ].indicadoresFinanzas.historicoGanancias += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasSemana += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasMes += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasAnio += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
+            idEncontrado = 1;
+            break;
+         }
+      }
+      if( idEncontrado ){
+         break;
+      }
+   }
+}
+
 void eliminarLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
    int i, j, id, salida = 0;
    listarLocales( centroComercial, pisos, localesxPiso );
@@ -668,15 +780,6 @@ void eliminarLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
    }
    else{
       printf( "El ID solicitado no fue encontrado en el registro. No se elimino ningun local del registro\n" );
-   }
-}
-
-void reiniciarEstadosDePago( local_t ** centroComercial, int pisos, int localesxPiso ){
-   int i, j;
-   for( i = 0; i < pisos; i++ ){
-      for( j = 0; j < localesxPiso; j++ ){
-         centroComercial[ i ][ j ].renta.estadoPago = 1;
-      }
    }
 }
 
