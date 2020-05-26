@@ -86,25 +86,37 @@ struct Local{
    struct tm fechaIngreso;
 };
 
-void * timer( void * arg );
-void menuPrincipal( );
-void validarRangoValor( int minimo, int maximo, int * direccionVariable );
-void consultarInfoLocal( local_t ** centroComercial, int pisos, int localesxPiso );
-void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso );
+void crearDirectorios( );
+local_t ** crearCC( int * pisos, int * localesxPiso );
 void generarListaIdsModificados( int ** listaIdsModificados, int pisos, int localesxPiso );
+
 void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * pisos, int * localesxPiso, int * listaIdsModificados, int * elementosListaIds );
 void cargarCC( FILE * archivoBinario, local_t *** centroComercial, int * pisos, int * localesxPiso, int ** listaIdsModificados, int * elementosListaIds );
-void crearDirectorios( );
-void validarRangoValor( int minimo, int maximo, int * direccionvariable );
-local_t ** crearCC( int * pisos, int * localesxPiso );
+
+void * timer( void * arg );
+
+void validarRangoValor( int minimo, int maximo, int * direccionVariable );
 int multiplicadorDecimal( int localesxPiso );
-void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int * listaIdsModificados, int * elementosListaIds );
+
+void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso );
+void consultarInfoLocal( local_t ** centroComercial, int pisos, int localesxPiso );
+
 void numeroLocalesEnUso( local_t ** centroComercial, int pisos, int localesxPiso );
 void listarLocalesPorPiso( local_t ** centroComercial, int localesxPiso );
 void listarLocales( local_t ** centroComercial, int pisos, int localesxPiso );
+
+void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int * listaIdsModificados, int * elementosListaIds );
 void modificarInformacionLocal( local_t ** centroComercial, int pisos, int localesxPiso, int * listaIdsModificados, int * elementosListaIds );
 void eliminarLocal( local_t ** centroComercial, int pisos, int localesxPiso );
+
 void registrarPagoRentaLocal( local_t ** centroComercial, int pisos, int localesxPiso );
 void generarRegistroDePagos( local_t ** centroComercial, int pisos, int localesxPiso );
+
+void ordenarSeleccion( local_t arreglo[], int size );
+void ordenarInsercion( local_t arreglo[], int size );
+void quickSort( local_t arreglo[], int posInicial, int posFinal );
+void mergeSort( local_t arreglo[], int posInicial, int posFinal );
+
+void menuPrincipal( );
 
 #endif

@@ -1,12 +1,72 @@
 #include "FuncionesCC.h"
 
+void validarRangoValor( int minimo, int maximo, int * direccionVariable ){
+   int i = 1;
+   do{
+      if( i > 1 ){
+         printf( "El valor ingresado es invalido. Por favor intentelo nuevamente\n" );
+      }
+      scanf( "%d", direccionVariable );
+      i++;
+   } while( * direccionVariable < minimo || * direccionVariable > maximo );
+}
+
+int multiplicadorDecimal( int localesxPiso ){
+   if( localesxPiso / 10 == 0 ){
+      return 10;
+   }
+   return 10 * multiplicadorDecimal( localesxPiso / 10);
+}
+
+void imprimirLocalesOrdenados( local_t listaLocales[ ], int size, char mode ){
+   int i;
+   for( i = 0; i < size; i++ ){
+      printf( "Nombre: %s", listaLocales[ i ].nombreLocal );
+      printf( "ID: %d\n", listaLocales[ i ].idLocal );
+      printf( "Piso: %d\n", listaLocales[ i ].pisoLocal );
+      printf( "Numero local: %d\n", listaLocales[ i ].numLocalxPiso );
+      if( mode == 'n' ){
+         printf( "Numero de empleados: %d\n", listaLocales[ i ].nomina.numeroEmpleados );
+      }
+      else if( mode == 'i' ){
+         printf( "Numero de productos: %d\n", listaLocales[ i ].inventario.numeroProductos );
+      }
+      else if( mode == 's' ){
+         printf( "Ventas esta semana: %lf\n", listaLocales[ i ].indicadoresFinanzas.gananciasSemana );
+      }
+      else if( mode == 'm' ){
+         printf( "Ventas este mes: %lf\n", listaLocales[ i ].indicadoresFinanzas.gananciasMes );
+      }
+      printf( "==============================\n" );
+   }
+   printf( "\n" );
+}
+
+void menuPrincipal( ){
+   printf( "MENU PRINCIPAL\n" );
+   printf( "1. Ingresar un nuevo local al sistema\n" );
+   printf( "2. Registrar venta de un local\n" );
+   printf( "3. Ver el numero de locales en uso\n" );
+   printf( "4. Ver locales ubicados en un piso\n" );
+   printf( "5. Modificar la informacion de un local\n" );
+   printf( "6. Listar todos los locales\n" );
+   printf( "7. Consultar informacion especifica de un local\n" );
+   printf( "8. Eliminar un local del sistema\n" );
+   printf( "9. Registrar pago de la renta de un local\n" );
+   printf( "10. Generar registro de pagos\n" );
+   printf( "11. Ordenar locales por numero de empleados\n" );
+   printf( "12. Ordenar locales por tamanio de inventario\n" );
+   printf( "13. Ordenar locales de un piso por numero de ventas esta semana\n" );
+   printf( "14. Ordenar locales de un piso por numero de ventas este mes\n" );
+   printf( "15. Salir\n" );
+}
+
 void * timer( void * arg ){
    type_threadData * threadData;
    threadData = ( type_threadData * )arg;
    local_t ** centroComercial = ( threadData->centroComercial );
    time_t timeDifIndSem, timeDifIndMes, timeDifIndAnio, timeDifRent;
    int i, j;
-   printf( "VALUE: %d\n", !( * threadData->killThread ) );
    while( !( * threadData->killThread ) ){
       for( i = 0; i < threadData->pisos; i++ ){
          for( j = 0; j < threadData->localesxPiso; j++ ){
@@ -67,27 +127,69 @@ void evaluarRentas( local_t ** centroComercial, int pisos, int localesxPiso ){
    }
 }
 
-void menuPrincipal( ){
-   printf( "MENU PRINCIPAL\n" );
-   printf( "1. Ingresar un nuevo local al sistema\n" );
-   printf( "2. Registrar venta de un local\n" );
-   printf( "3. Ver el numero de locales en uso\n" );
-   printf( "4. Ver locales ubicados en un piso\n" );
-   printf( "5. Modificar la informacion de un local\n" );
-   printf( "6. Listar todos los locales\n" );
-   printf( "7. Consultar informacion especifica de un local\n" );
-   printf( "8. Eliminar un local del sistema\n" );
-   printf( "9. Registrar pago de la renta de un local\n" );
-   printf( "10. Generar registro de pagos\n" );
-   printf( "11. Salir\n" );
+void generarListaIdsModificados( int ** listaIdsModificados, int pisos, int localesxPiso ){
+   int i;
+   * listaIdsModificados = malloc( pisos * localesxPiso * sizeof( int ) );
+   for( i = 0; i <  pisos * localesxPiso; i++ ){
+      ( * listaIdsModificados )[ i ] = -1;
+   }
 }
 
-void imprimirLista( int lista[ ], int size ){
+void reservarEspacioMemoria( local_t *** centroComercial, int localesxPiso, int pisos, int ** listaIdsModificados ){
    int i;
-   for( i = 0; i < size; i++ ){
-      printf( "%d ", lista[ i ] );
+   * listaIdsModificados = malloc( pisos * localesxPiso * sizeof( int ) );
+   * centroComercial = malloc( pisos * sizeof( local_t * ) );
+   for( i = 0; i < pisos; i++ ){
+      ( * centroComercial )[ i ] = malloc( localesxPiso * sizeof( local_t ) );
    }
-   printf( "\n" );
+}
+
+void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * pisos, int * localesxPiso, int * listaIdsModificados, int * elementosListaIds ){
+   int i;
+   fwrite( localesxPiso, sizeof( int ), 1, archivoBinario );
+   fwrite( pisos, sizeof( int ), 1, archivoBinario );
+   fwrite( elementosListaIds, sizeof( int ), 1, archivoBinario );
+   fwrite( listaIdsModificados, sizeof( int ), * elementosListaIds, archivoBinario );
+   for( i = 0; i < * pisos; i++ ){
+      fwrite( centroComercial[ i ], sizeof( local_t ), * localesxPiso, archivoBinario );
+   }
+}
+
+void cargarCC( FILE * archivoBinario, local_t *** centroComercial, int * pisos, int * localesxPiso, int ** listaIdsModificados, int * elementosListaIds ){
+   int i;
+   fread( localesxPiso, sizeof( int ), 1, archivoBinario );
+   fread( pisos, sizeof( int ), 1, archivoBinario );
+   reservarEspacioMemoria( centroComercial, * localesxPiso, * pisos, listaIdsModificados );
+   fread( elementosListaIds, sizeof( int ), 1, archivoBinario );
+   fread( * listaIdsModificados, sizeof( int ), * elementosListaIds, archivoBinario );
+   for( i = 0; i < * pisos; i++ ){
+      fread( ( * centroComercial )[ i ], sizeof( local_t ), * localesxPiso, archivoBinario );
+   }
+}
+
+void crearDirectorios( ){
+   mkdir( "./Data" );
+   mkdir( "./Pagos" );
+//   mkdir( "./Inventarios Locales" );
+}
+
+local_t ** crearCC( int * pisos, int * localesxPiso ){
+   local_t ** centroComercial;
+   int i, j;
+   printf( "Ingrese el numero de pisos del Centro Comercial: " );
+   validarRangoValor( 1, INT_MAX, pisos );
+   printf( "Ingrese el numero de locales por piso: " );
+   validarRangoValor( 1, INT_MAX, localesxPiso );
+   centroComercial = malloc( * pisos * sizeof( local_t * ) );
+   for( i = 0; i < * pisos; i++ ){
+      centroComercial[ i ] = malloc( * localesxPiso * sizeof( local_t ) );
+   }
+   for( i = 0; i < * pisos; i++ ){
+      for( j = 0; j < * localesxPiso; j++ ){
+         centroComercial[ i ][ j ].idLocal = -1;
+      }
+   }
+   return centroComercial;
 }
 
 void listarNomina( type_nomina * nomina ){
@@ -114,108 +216,6 @@ void listarInventario( type_inventario * inventario ){
    printf( "\n" );
 }
 
-void generarListaIdsModificados( int ** listaIdsModificados, int pisos, int localesxPiso ){
-   int i;
-   * listaIdsModificados = malloc( pisos * localesxPiso * sizeof( int ) );
-   for( i = 0; i <  pisos * localesxPiso; i++ ){
-      ( * listaIdsModificados )[ i ] = -1;
-   }
-   imprimirLista( * listaIdsModificados, pisos * localesxPiso );
-}
-
-void reservarEspacioMemoria( local_t *** centroComercial, int localesxPiso, int pisos, int ** listaIdsModificados ){
-   int i;
-   * listaIdsModificados = malloc( pisos * localesxPiso * sizeof( int ) );
-   * centroComercial = malloc( pisos * sizeof( local_t * ) );
-   for( i = 0; i < pisos; i++ ){
-      ( * centroComercial )[ i ] = malloc( localesxPiso * sizeof( local_t ) );
-   }
-   printf( "%d\n", localesxPiso * pisos );
-}
-
-void guardarCC( FILE * archivoBinario, local_t ** centroComercial, int * pisos, int * localesxPiso, int * listaIdsModificados, int * elementosListaIds ){
-   int i;
-   fwrite( localesxPiso, sizeof( int ), 1, archivoBinario );
-   fwrite( pisos, sizeof( int ), 1, archivoBinario );
-   fwrite( elementosListaIds, sizeof( int ), 1, archivoBinario );
-   fwrite( listaIdsModificados, sizeof( int ), * elementosListaIds, archivoBinario );
-   for( i = 0; i < * pisos; i++ ){
-      fwrite( centroComercial[ i ], sizeof( local_t ), * localesxPiso, archivoBinario );
-   }
-   printf( "%d\n", * elementosListaIds );
-}
-
-void cargarCC( FILE * archivoBinario, local_t *** centroComercial, int * pisos, int * localesxPiso, int ** listaIdsModificados, int * elementosListaIds ){
-   int i;
-   fread( localesxPiso, sizeof( int ), 1, archivoBinario );
-   fread( pisos, sizeof( int ), 1, archivoBinario );
-   reservarEspacioMemoria( centroComercial, * localesxPiso, * pisos, listaIdsModificados );
-   fread( elementosListaIds, sizeof( int ), 1, archivoBinario );
-   printf( "%d\n", * elementosListaIds );
-   fread( * listaIdsModificados, sizeof( int ), * elementosListaIds, archivoBinario );
-   for( i = 0; i < * pisos; i++ ){
-      fread( ( * centroComercial )[ i ], sizeof( local_t ), * localesxPiso, archivoBinario );
-   }
-}
-
-void crearDirectorios( ){
-   mkdir( "./Data" );
-   mkdir( "./Reportes" );
-   mkdir( "./Inventarios Locales" );
-}
-
-void validarRangoValor( int minimo, int maximo, int * direccionVariable ){
-   int i = 1;
-   do{
-      if( i > 1 ){
-         printf( "El valor ingresado es invalido. Por favor intentelo nuevamente\n" );
-      }
-      scanf( "%d", direccionVariable );
-      i++;
-   } while( * direccionVariable < minimo || * direccionVariable > maximo );
-}
-
-local_t ** crearCC( int * pisos, int * localesxPiso ){
-   local_t ** centroComercial;
-   int i, j;
-   printf( "Ingrese el numero de pisos del Centro Comercial: " );
-   validarRangoValor( 1, INT_MAX, pisos );
-   printf( "Ingrese el numero de locales por piso: " );
-   validarRangoValor( 1, INT_MAX, localesxPiso );
-   centroComercial = malloc( * pisos * sizeof( local_t * ) );
-   for( i = 0; i < * pisos; i++ ){
-      centroComercial[ i ] = malloc( * localesxPiso * sizeof( local_t ) );
-   }
-   for( i = 0; i < * pisos; i++ ){
-      for( j = 0; j < * localesxPiso; j++ ){
-         centroComercial[ i ][ j ].idLocal = -1;
-      }
-   }
-   return centroComercial;
-}
-
-int multiplicadorDecimal( int localesxPiso ){
-   if( localesxPiso / 10 == 0 ){
-      return 10;
-   }
-   return 10 * multiplicadorDecimal( localesxPiso / 10);
-}
-
-int validarId( int * listaIdsModificados, int * dimensionLista, int id ){
-   int i = 0, validar = 0;
-   while( listaIdsModificados[ i ] != -1 && i < * dimensionLista && !validar ){
-      if( listaIdsModificados[ i ] == id ){
-         validar = 1;
-         break;
-      }
-      i++;
-   }
-   if( validar == 0 ){
-      i = -1;
-   }
-   return i;
-}
-
 int * imprimirInfoLocal( local_t ** centroComercial, int pisos, int localesxPiso, int id ){
    int i, j, validar = 0;
    int * indices = malloc( 2 * sizeof( int ) );
@@ -236,9 +236,25 @@ int * imprimirInfoLocal( local_t ** centroComercial, int pisos, int localesxPiso
          break;
       }
    }
+   printf( "\n" );
    indices[ 0 ] = i;
    indices[ 1 ] = j;
    return indices;
+}
+
+int validarId( int * listaIdsModificados, int * dimensionLista, int id ){
+   int i = 0, validar = 0;
+   while( listaIdsModificados[ i ] != -1 && i < * dimensionLista && !validar ){
+      if( listaIdsModificados[ i ] == id ){
+         validar = 1;
+         break;
+      }
+      i++;
+   }
+   if( validar == 0 ){
+      i = -1;
+   }
+   return i;
 }
 
 void menuCategoria( ){
@@ -249,6 +265,7 @@ void menuCategoria( ){
    printf( "4. Entretenimiento\n" );
    printf( "5. Viveres\n" );
    printf( "6. Comida\n" );
+   printf( "\n" );
 }
 
 void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int * listaIdsModificados, int * elementosListaIds ){
@@ -256,6 +273,7 @@ void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int 
    int opcion, numProductos, numEmpleados, a, indice, posibleId, nuevoId, pisoLocal, numeroLocal, validar = 1;
    int * indices;
    double indicadorRentabilidad;
+   system( "cls" );
    do{
       printf( "Ingrese el piso donde desea ubicar el local: " );
       scanf( " %d", &pisoLocal );
@@ -350,7 +368,7 @@ void agregarLocal( local_t ** centroComercial, int pisos, int localesxPiso, int 
          printf( "El local indicado no existe. Por favor ingrese una ubicacion diferente para el local\n" );
       }
    } while( 1 );
-   imprimirLista( listaIdsModificados, * elementosListaIds );
+   printf( "\n" );
 }
 
 void numeroLocalesEnUso( local_t ** centroComercial, int pisos, int localesxPiso ){
@@ -363,6 +381,7 @@ void numeroLocalesEnUso( local_t ** centroComercial, int pisos, int localesxPiso
       }
    }
    printf( "El numero de locales en uso es: %d\n", pisos * localesxPiso - localesDisponibles );
+   printf( "\n" );
 }
 
 void listarLocalesPorPiso( local_t ** centroComercial, int localesxPiso ){
@@ -589,7 +608,6 @@ modificarInventario( local_t * local ){
                          recalcularIndicador( &local->inventario );
                          break;
               }
-listarInventario( &local->inventario );
               break;
    }
 }
@@ -678,7 +696,6 @@ void modificarInformacionLocal( local_t ** centroComercial, int pisos, int local
                                  else{
                                     listaIdsModificados[ ( * elementosListaIds )++ ] = idNuevo;
                                  }
-                                 imprimirLista( listaIdsModificados, * elementosListaIds );
                               }
                            }
                            break;
@@ -694,6 +711,34 @@ void modificarInformacionLocal( local_t ** centroComercial, int pisos, int local
          printf( "El ID solicitado no fue encontrado en el registro. Por favor intentelo nuevamente\n" );
       }
    } while( !idEncontrado );
+}
+
+void registrarVentaLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
+   int unidades, opcion, numeroProducto, i, j, id, idEncontrado = 0;
+   listarLocales( centroComercial, pisos, localesxPiso );
+   printf( "Ingrese el ID del local que desea consultar: " );
+   scanf( "%d", &id );
+   for( i = 0; i < pisos; i++ ){
+      for( j = 0; j < localesxPiso; j++ ){
+         if( centroComercial[ i ][ j ].idLocal == id ){
+            listarNombresInventario( &centroComercial[ i ][ j ].inventario );
+            printf( "Ingrese el producto vendido: " );
+            scanf( "%d", &numeroProducto );
+            printf( "Ingrese el numero de unidades vendidas segun la disponibilidad: " );
+            validarRangoValor( 1, centroComercial[ i ][ j ].inventario.listaCantidad[ numeroProducto - 1 ], &unidades );
+            centroComercial[ i ][ j ].inventario.listaCantidad[ numeroProducto - 1 ] -= unidades;
+            centroComercial[ i ][ j ].indicadoresFinanzas.historicoGanancias += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasSemana += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasMes += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
+            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasAnio += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
+            idEncontrado = 1;
+            break;
+         }
+      }
+      if( idEncontrado ){
+         break;
+      }
+   }
 }
 
 menuInfoLocal( ){
@@ -718,34 +763,6 @@ void consultarInfoLocal( local_t ** centroComercial, int pisos, int localesxPiso
               case 2: listarInventario( &centroComercial[ i ][ j ].inventario );
                       break;
             }
-            idEncontrado = 1;
-            break;
-         }
-      }
-      if( idEncontrado ){
-         break;
-      }
-   }
-}
-
-void registrarVentaLocal( local_t ** centroComercial, int pisos, int localesxPiso ){
-   int unidades, opcion, numeroProducto, i, j, id, idEncontrado = 0;
-   listarLocales( centroComercial, pisos, localesxPiso );
-   printf( "Ingrese el ID del local que desea consultar: " );
-   scanf( "%d", &id );
-   for( i = 0; i < pisos; i++ ){
-      for( j = 0; j < localesxPiso; j++ ){
-         if( centroComercial[ i ][ j ].idLocal == id ){
-            listarNombresInventario( &centroComercial[ i ][ j ].inventario );
-            printf( "Ingrese el producto vendido: " );
-            scanf( "%d", &numeroProducto );
-            printf( "Ingrese el numero de unidades vendidas segun la disponibilidad: " );
-            validarRangoValor( 1, centroComercial[ i ][ j ].inventario.listaCantidad[ numeroProducto - 1 ], &unidades );
-            centroComercial[ i ][ j ].inventario.listaCantidad[ numeroProducto - 1 ] -= unidades;
-            centroComercial[ i ][ j ].indicadoresFinanzas.historicoGanancias += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
-            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasSemana += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
-            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasMes += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
-            centroComercial[ i ][ j ].indicadoresFinanzas.gananciasAnio += ( centroComercial[ i ][ j ].inventario.listaPrecios[ numeroProducto - 1 ] - centroComercial[ i ][ j ].inventario.listaCostos[ numeroProducto - 1 ] ) * unidades;
             idEncontrado = 1;
             break;
          }
@@ -818,7 +835,7 @@ void generarRegistroDePagos( local_t ** centroComercial, int pisos, int localesx
    FILE * registro;
    int i, j;
    double costoMetroCuadrado;
-   registro = fopen( "registro.txt", "w" );
+   registro = fopen( "./Pagos/Registro De Pagos.txt", "w" );
    printf( "Ingrese el costo del metro cuadrado a la fecha: " );
    scanf( "%lf", &costoMetroCuadrado );
    for( i = 0; i < pisos; i++ ){
@@ -840,3 +857,180 @@ void generarRegistroDePagos( local_t ** centroComercial, int pisos, int localesx
    }
    fclose( registro );
 }
+
+void intercambiar( local_t arreglo[ ], int posicion1, int posicion2 ){
+   local_t temp = arreglo[ posicion1 ];
+   arreglo[ posicion1 ] = arreglo[ posicion2 ];
+   arreglo[ posicion2 ] = temp;
+}
+
+void ordenarSeleccion( local_t arreglo[ ], int size ){
+   int i, j, posMinima;
+   for( i = 0; i < size - 1; i++ ){
+      posMinima = i;
+      for( j = i + 1; j < size; j++ ){
+         if( arreglo[ j ].nomina.numeroEmpleados < arreglo[ posMinima].nomina.numeroEmpleados ){
+            posMinima = j;
+         }	
+      }
+      if( i != posMinima ){
+         intercambiar( arreglo, i, posMinima );
+      }	
+   }
+}
+
+void ordenarInsercion( local_t arreglo[ ], int size ){
+   int i, j;
+   local_t temp;
+   for (i = 1; i < size; i++) {
+      temp = arreglo[i];
+      j = i;
+      while( temp.inventario.numeroProductos < arreglo[j - 1].inventario.numeroProductos && j > 0 ){
+         arreglo[j] = arreglo[j - 1];
+         j--;
+      }
+      arreglo[j] = temp;
+   }
+}
+
+int partirYOrdenarPivoteInicial(local_t arreglo[], int posPrimerElem, int posUltimoElem){
+   int valorPivote = arreglo[posPrimerElem].indicadoresFinanzas.gananciasMes;
+   int posIzquierda = posPrimerElem + 1;
+   int posDerecha = posUltimoElem;
+   do{
+      while(posIzquierda <= posDerecha && arreglo[posIzquierda].indicadoresFinanzas.gananciasMes <= valorPivote){
+         posIzquierda++;
+      }
+      while(posIzquierda <= posDerecha && arreglo[posDerecha].indicadoresFinanzas.gananciasMes > valorPivote){
+         posDerecha--;
+      }
+      if(posIzquierda < posDerecha){
+         intercambiar(arreglo, posIzquierda, posDerecha);
+         posIzquierda++;
+         posDerecha--;
+      }
+   } while (posIzquierda <= posDerecha);
+   if(arreglo[posDerecha].indicadoresFinanzas.gananciasMes != valorPivote){
+      intercambiar(arreglo, posPrimerElem, posDerecha);
+   }
+   return posDerecha;
+}
+
+void quickSort( local_t arreglo[ ], int posIzquierda, int posDerecha ){
+   int posPivote;
+   if( posIzquierda < posDerecha ){
+      posPivote = partirYOrdenarPivoteInicial(arreglo, posIzquierda, posDerecha);
+      quickSort(arreglo, posIzquierda, posPivote - 1);
+      quickSort(arreglo, posPivote + 1, posDerecha);
+   }
+}
+
+void merge( local_t arreglo[ ], int posInicial, int posMitad, int posFinal ){
+   int tamArrayTemp = (posFinal - posInicial) + 1;
+   local_t arregloParcial[tamArrayTemp];
+   int indexMitadUno = posInicial;
+   int indexMitadDos = posMitad + 1;
+   int indexArregloParcial = 0;
+   int indexArregloFinal;
+   while(indexMitadUno <= posMitad && indexMitadDos <= posFinal){
+      if(arreglo[indexMitadUno].indicadoresFinanzas.gananciasSemana <= arreglo[indexMitadDos].indicadoresFinanzas.gananciasSemana){
+         arregloParcial[indexArregloParcial] = arreglo[indexMitadUno];
+         indexMitadUno++;
+      }
+      else{
+         arregloParcial[indexArregloParcial] = arreglo[indexMitadDos];
+         indexMitadDos++;
+      }
+      indexArregloParcial++;
+   }
+   while(indexMitadUno <= posMitad){
+      arregloParcial[indexArregloParcial] = arreglo[indexMitadUno];
+      indexArregloParcial++;
+      indexMitadUno++;
+   }
+   while(indexMitadDos <= posFinal){
+      arregloParcial[indexArregloParcial] = arreglo[indexMitadDos];
+      indexArregloParcial++;
+      indexMitadDos++;
+   }
+   for( indexArregloParcial = 0; indexArregloParcial < tamArrayTemp; indexArregloParcial++ ){
+      indexArregloFinal = posInicial + indexArregloParcial;
+      arreglo[indexArregloFinal] = arregloParcial[indexArregloParcial];
+   }
+}
+
+void mergeSort( local_t arreglo[], int posInicial, int posFinal ){
+   if(posInicial < posFinal){
+      int posMitad = (posInicial + posFinal) / 2;
+      mergeSort( arreglo, posInicial, posMitad );
+      mergeSort( arreglo, posMitad + 1, posFinal );
+      merge( arreglo, posInicial, posMitad, posFinal );
+   }
+}
+
+void ordenarPorVentasSemana( local_t ** centroComercial, int pisos, int localesxPiso ){
+   int i, pisoOrdenar, numeroLocales = 0;
+   local_t listaLocales[ pisos * localesxPiso ];
+   printf( "Ingrese el numero del piso que desea ordenar: " );
+   validarRangoValor( 1, pisos, &pisoOrdenar );
+   for( i = 0; i < localesxPiso; i++ ){
+       if( centroComercial[ pisoOrdenar - 1 ][ i ].idLocal != -1  ){
+         listaLocales[ numeroLocales ] = centroComercial[ pisoOrdenar - 1 ][ i ];
+         numeroLocales++;
+      }
+   }
+   imprimirLocalesOrdenados( listaLocales, numeroLocales, 's' );
+   mergeSort( listaLocales, 0, numeroLocales );
+   imprimirLocalesOrdenados( listaLocales, numeroLocales, 's' );
+}
+
+void ordenarPorVentasMes( local_t ** centroComercial, int pisos, int localesxPiso ){
+   int i, pisoOrdenar, numeroLocales = 0;
+   local_t listaLocales[ pisos * localesxPiso ];
+   printf( "Ingrese el numero del piso que desea ordenar: " );
+   validarRangoValor( 1, pisos, &pisoOrdenar );
+   for( i = 0; i < localesxPiso; i++ ){
+       if( centroComercial[ pisoOrdenar - 1 ][ i ].idLocal != -1  ){
+         listaLocales[ numeroLocales ] = centroComercial[ pisoOrdenar - 1 ][ i ];
+         numeroLocales++;
+      }
+   }
+   imprimirLocalesOrdenados( listaLocales, numeroLocales, 'm' );
+   quickSort( listaLocales, 0, numeroLocales );
+   imprimirLocalesOrdenados( listaLocales, numeroLocales, 'm' );
+}
+
+void ordenarPorNumeroEmpleados( local_t ** centroComercial, int pisos, int localesxPiso ){
+   int i, j, k, numeroLocales = 0;
+   local_t listaLocales[ pisos * localesxPiso ];
+   k = 0;
+   for( i = 0; i < pisos; i++ ){
+      for( j = 0; j < localesxPiso; j++ ){
+         if( centroComercial[ i ][ j ].idLocal != -1  ){
+            listaLocales[ k ] = centroComercial[ i ][ j ];
+            k++;
+            numeroLocales++;
+         }
+      }
+   }
+   ordenarSeleccion( listaLocales, numeroLocales );
+   imprimirLocalesOrdenados( listaLocales, numeroLocales, 'n' );
+}
+
+void ordenarPorTamanioInventario( local_t ** centroComercial, int pisos, int localesxPiso ){
+   int i, j, k, numeroLocales = 0;
+   local_t listaLocales[ pisos * localesxPiso ];
+   k = 0;
+   for( i = 0; i < pisos; i++ ){
+      for( j = 0; j < localesxPiso; j++ ){
+         if( centroComercial[ i ][ j ].idLocal != -1  ){
+            listaLocales[ k ] = centroComercial[ i ][ j ];
+            k++;
+            numeroLocales++;
+         }
+      }
+   }
+   ordenarInsercion( listaLocales, numeroLocales );
+   imprimirLocalesOrdenados( listaLocales, numeroLocales, 'i' );
+}
+

@@ -24,12 +24,10 @@ int main( ){
    fclose( archivoBinario );
    evaluarRentas( centroComercial, pisos, localesxPiso );
    type_threadData threadData = ( type_threadData ){ centroComercial, pisos, localesxPiso, &killThread };
-printf( "Pisos: %d\n", pisos );
-printf( "Locales por piso: %d\n", localesxPiso );
    pthread_create( &tid, &attr, timer, &threadData );
    do{
       menuPrincipal( );
-      validarRangoValor( 1, 11, &opcion );
+      validarRangoValor( 1, 15, &opcion );
       switch( opcion ){
          case 1: agregarLocal( centroComercial, pisos, localesxPiso, listaIdsModificados, &elementosListaIds );
                  break;
@@ -50,9 +48,17 @@ printf( "Locales por piso: %d\n", localesxPiso );
          case 9: registrarPagoRentaLocal( centroComercial, pisos, localesxPiso );
                  break;
          case 10: generarRegistroDePagos( centroComercial, pisos, localesxPiso );
-                 break;
+                  break;
+         case 11: ordenarPorNumeroEmpleados( centroComercial, pisos, localesxPiso );
+                  break;
+         case 12: ordenarPorTamanioInventario( centroComercial, pisos, localesxPiso );
+                  break;
+         case 13: ordenarPorVentasSemana( centroComercial, pisos, localesxPiso );
+                  break;
+         case 14: ordenarPorVentasMes( centroComercial, pisos, localesxPiso );
+                  break;
       }
-   } while( opcion != 11 );
+   } while( opcion != 15 );
    archivoBinario = fopen( "./Data/Data.dat", "wb" );
    guardarCC( archivoBinario, centroComercial, &pisos, &localesxPiso, listaIdsModificados, &elementosListaIds );
    fclose( archivoBinario );
