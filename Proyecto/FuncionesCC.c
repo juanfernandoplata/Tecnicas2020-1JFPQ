@@ -1,5 +1,66 @@
 #include "FuncionesCC.h"
 
+void generarInventarios( local_t ** centroComercial, int pisos, int localesxPiso ){
+   FILE * archivo;
+   int i, j, k, a;
+   char ruta[ 50 ] = "";
+   mkdir( "./Inventarios" );
+   for( i = 0; i < pisos; i++ ){
+      for( j = 0; j < localesxPiso; j++ ){
+         if( centroComercial[ i ][ j ].idLocal != -1 ){
+            strcpy( ruta, "./Inventarios/" );
+            strcat( ruta, centroComercial[ i ][ j ].nombreLocal );
+            for( a = 0; a < 50; a++ ){
+               if( ruta[ a ] == '\n' ){
+                  ruta[ a ] = '.';
+                  break;
+               }
+            }
+            strcat( ruta, "txt" );
+            archivo = fopen( ruta, "w" );
+            for( k = 0; k < centroComercial[ i ][ j ].inventario.numeroProductos; k++ ){
+               fprintf( archivo, "Nombre del producto: %s", centroComercial[ i ][ j ].inventario.listaProductos[ k ] );
+               fprintf( archivo, "Unidades: %d\n", centroComercial[ i ][ j ].inventario.listaCantidad[ k ] );
+               fprintf( archivo, "Costo: %lf\n", centroComercial[ i ][ j ].inventario.listaCostos[ k ] );
+               fprintf( archivo, "Precio: %lf\n", centroComercial[ i ][ j ].inventario.listaPrecios[ k ] );
+               fprintf( archivo, "\n" );
+            }
+            fclose( archivo );
+         }
+      }
+   }
+}
+
+void generarNominas( local_t ** centroComercial, int pisos, int localesxPiso ){
+   FILE * archivo;
+   int i, j, k, a;
+   char ruta[ 50 ] = "";
+   mkdir( "./Nominas" );
+   for( i = 0; i < pisos; i++ ){
+      for( j = 0; j < localesxPiso; j++ ){
+         if( centroComercial[ i ][ j ].idLocal != -1 ){
+            strcpy( ruta, "./Nominas/" );
+            strcat( ruta, centroComercial[ i ][ j ].nombreLocal );
+            for( a = 0; a < 50; a++ ){
+               if( ruta[ a ] == '\n' ){
+                  ruta[ a ] = '.';
+                  break;
+               }
+            }
+            strcat( ruta, "txt" );
+            archivo = fopen( ruta, "w" );
+            for( k = 0; k < centroComercial[ i ][ j ].nomina.numeroEmpleados; k++ ){
+               fprintf( archivo, "Nombre: %s", centroComercial[ i ][ j ].nomina.listaNombres[ k ] );
+               fprintf( archivo, "Cargo: %s", centroComercial[ i ][ j ].nomina.listaCargos[ k ] );
+               fprintf( archivo, "Salario: %lf\n", centroComercial[ i ][ j ].nomina.listaSalarios[ k ] );
+               fprintf( archivo, "\n" );
+            }
+            fclose( archivo );
+         }
+      }
+   }
+}
+
 void validarRangoValor( int minimo, int maximo, int * direccionVariable ){
    int i = 1;
    do{

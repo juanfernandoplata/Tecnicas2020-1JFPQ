@@ -8,6 +8,7 @@
 #include <time.h>
 #include <string.h>
 #include <pthread.h>
+// #include <stdexcept>
 
 typedef struct Local local_t;
 typedef struct type_inventario type_inventario;
@@ -85,6 +86,9 @@ struct Local{
    int metrosCuadradosLocal;
    struct tm fechaIngreso;
 };
+
+void generarNominas( local_t ** centroComercial, int pisos, int localesxPiso );
+void generarInventarios( local_t ** centroComercial, int pisos, int localesxPiso );
 
 void crearDirectorios( );
 local_t ** crearCC( int * pisos, int * localesxPiso );

@@ -59,6 +59,8 @@ int main( ){
                   break;
       }
    } while( opcion != 15 );
+   generarNominas( centroComercial, pisos, localesxPiso );
+   generarInventarios( centroComercial, pisos, localesxPiso );
    archivoBinario = fopen( "./Data/Data.dat", "wb" );
    guardarCC( archivoBinario, centroComercial, &pisos, &localesxPiso, listaIdsModificados, &elementosListaIds );
    fclose( archivoBinario );

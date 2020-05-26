@@ -1,0 +1,5 @@
+Nombre del producto: Aire
+Unidades: 1
+Costo: 1.000000
+Precio: 100000.000000
+

@@ -1,0 +1,10 @@
+Nombre del producto: GGG
+Unidades: 3
+Costo: 14000.000000
+Precio: 100000.000000
+
+Nombre del producto: FFF
+Unidades: 2
+Costo: 12000.000000
+Precio: 20000.000000
+
